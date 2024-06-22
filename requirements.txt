@@ -1,5 +1,11 @@
 opencv-python==4.10.0.84
+torch~=2.3.1
 
 # YOLO
 ultralytics==8.2.28
 lapx>=0.5.2
+
+# SORT
+numpy~=2.0.0
+scipy~=1.13.1
+filterpy~=1.4.5

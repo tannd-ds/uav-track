@@ -1,5 +1,5 @@
 class ObjectModel:
-    def update_dets(self):
+    def detect(self):
         raise NotImplementedError
 
     def track(self, img_dir, **kwargs):

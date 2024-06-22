@@ -29,8 +29,8 @@ def parse_gt_files(path):
     The world coordinates x,y,z are ignored for the 2D challenge and can be filled with -1.
     Similarly, the bounding boxes are ignored for the 3D challenge. However, each line is still required to contain 10 values.
     """
-    gt_file = os.path.join(path, 'gt/gt.txt')
-    det_file = os.path.join(path, 'det/det.txt')
+    gt_file = os.path.realpath(os.path.join(os.getcwd(), path, 'gt/gt.txt'))
+    det_file = os.path.realpath(os.path.join(os.getcwd(), path, 'det/det.txt'))
 
     with open(gt_file, 'r') as file:
         gt = file.readlines()

@@ -1,2 +1,5 @@
 results/
 .idea/
+
+.ipynb_checkpoints/
+pretrained/

@@ -12,9 +12,10 @@ conda activate {ENV_NAME}
 pip install -r requirements.txt
 ```
 
-To run the demo of YOLO on Visdrone dataset (test set)
+To run the demo of YOLO on VisDrone dataset (test set)
 ```sh
-python {REPO_HOME}/my_utils/run_yolo_on_visdrone.py \
+python {REPO_HOME}/run.py \
+    --MODEL yolo \
     --WEIGHTS_PATH {path_to_yolo_weights} \
     --SEQUENCES_DIR {path_to_visdrone_dataset_test/test} \
     --TRACKER botsort \
@@ -24,7 +25,7 @@ python {REPO_HOME}/my_utils/run_yolo_on_visdrone.py \
 
 # YOLOv10
 
-> Note: YOLOv10 is not officially part of Ultralytics, we need to setup it differently.
+> Note: YOLOv10 is not officially part of Ultralytics, we need to set up it differently.
 
 Clone YOLOv10 Repo
 ```sh
@@ -42,7 +43,7 @@ conda activate {ENV_NAME}
 pip install -r requirements.txt
 ```
 
-To run the demo of YOLO on Visdrone dataset (test set)
+To run the demo of YOLO on VisDrone dataset (test set)
 ```sh
 cd {YOLOv10_HOME}
 python run_yolov10_on_visdrone.py \
@@ -52,3 +53,10 @@ python run_yolov10_on_visdrone.py \
     --SAVE_RESULTS \
     --SHOW
 ```
+
+# Acknowledgement
+
+Some parts of our code are borrowed from the following works:
+- [JonathonLuiten/TrackEval](https://github.com/JonathonLuiten/TrackEval)
+- [corfyi/UCMCTrack](https://github.com/corfyi/ucmctrack)
+- [THU-MIG/yolov10](https://github.com/THU-MIG/yolov10)
