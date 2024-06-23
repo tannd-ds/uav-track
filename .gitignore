@@ -1,5 +1,8 @@
 results/
-.idea/
-
-.ipynb_checkpoints/
+datasets/
 pretrained/
+
+
+.idea/
+.ipynb_checkpoints/
+__pycache__/

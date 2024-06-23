@@ -3,7 +3,7 @@ from __future__ import print_function
 import numpy as np
 from lap import lapjv
 
-from .kalman import KalmanTracker,TrackStatus
+from .kalman import KalmanTracker, TrackStatus
 
 
 def linear_assignment(cost_matrix, thresh):
@@ -40,15 +40,14 @@ class UCMCTrack(object):
 
         self.detector = detector
 
-
-    def update(self, dets,frame_id):
+    def update(self, dets, frame_id):
         self.data_association(dets,frame_id)
         self.associate_tentative(dets)
         self.initial_tentative(dets)
         self.delete_old_trackers()
         self.update_status(dets)
-    
-    def data_association(self, dets,frame_id):
+
+    def data_association(self, dets, frame_id):
         # Separate detections into high score and low score
         detidx_high = []
         detidx_low = []
@@ -172,9 +171,7 @@ class UCMCTrack(object):
             unmatched_detidx.append(self.detidx_remain[i])
         self.detidx_remain = unmatched_detidx
 
-            
-    
-    def initial_tentative(self,dets):
+    def initial_tentative(self, dets):
         for i in self.detidx_remain: 
             self.trackers.append(KalmanTracker(dets[i].y,dets[i].R,self.wx,self.wy,self.vmax, dets[i].bb_width,dets[i].bb_height,self.dt))
             self.trackers[-1].status = TrackStatus.Tentative
@@ -185,18 +182,19 @@ class UCMCTrack(object):
         i = len(self.trackers)
         for trk in reversed(self.trackers):
             trk.death_count += 1
-            i -= 1 
-            if ( trk.status == TrackStatus.Coasted and trk.death_count >= self.max_age) or ( trk.status == TrackStatus.Tentative and trk.death_count >= 2):
+            i -= 1
+            if (trk.status == TrackStatus.Coasted and trk.death_count >= self.max_age) or (
+                    trk.status == TrackStatus.Tentative and trk.death_count >= 2):
                   self.trackers.pop(i)
 
-    def update_status(self,dets):
+    def update_status(self, dets):
         self.confirmed_idx = []
         self.coasted_idx = []
         self.tentative_idx = []
         for i in range(len(self.trackers)):
 
             detidx = self.trackers[i].detidx
-            if detidx >= 0 and detidx < len(dets):
+            if 0 <= detidx < len(dets):
                 self.trackers[i].h = dets[detidx].bb_height
                 self.trackers[i].w = dets[detidx].bb_width
 

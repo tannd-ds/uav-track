@@ -1,6 +1,8 @@
-from filterpy.kalman import KalmanFilter
-import numpy as np
 from enum import Enum
+
+import numpy as np
+from filterpy.kalman import KalmanFilter
+
 
 class TrackStatus(Enum):
     Tentative = 0
@@ -11,7 +13,7 @@ class KalmanTracker(object):
 
     count = 1
 
-    def __init__(self, y, R, wx, wy, vmax, w,h,dt=1/30):
+    def __init__(self, y, R, wx, wy, vmax, w, h, dt=1 / 30):
         
         self.kf = KalmanFilter(dim_x=4, dim_z=2)
         self.kf.F = np.array([[1, dt, 0, 0], [0, 1, 0, 0], [0, 0, 1, dt], [0, 0, 0, 1]])

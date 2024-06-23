@@ -1,8 +1,5 @@
-from . import utils
-
+from . import association
 # Models
 from . import detection
-from . import association
-
-from .base import ObjectModel
+from . import utils
 from .AssembleModel import AssembleModel
