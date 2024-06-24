@@ -1,9 +1,9 @@
 import cv2
-import numpy as np
 from ultralytics import YOLO
-from trackers.detection.ucmc.detector.mapper import Mapper
-from trackers.detection.base import DetectionModel
-from . import Detection
+
+from .base import DetectionModel, Detection
+from .ucmc.detector.mapper import Mapper
+
 
 class UCMCDetector(DetectionModel):
     def __init__(self,
@@ -25,7 +25,7 @@ class UCMCDetector(DetectionModel):
 
         frame = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
-        results = self.model(frame, imgsz=512, device="0")
+        results = self.model(frame, imgsz=512, device="0", verbose=False)
 
         det_id = 0
         for box in results[0].boxes:

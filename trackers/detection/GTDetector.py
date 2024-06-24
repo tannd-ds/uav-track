@@ -1,6 +1,7 @@
 import os
-from .base import DetectionModel
+
 from trackers.utils.visdrone import get_current_frame, parse_gt_files
+from .base import DetectionModel
 
 
 class GTDetector(DetectionModel):

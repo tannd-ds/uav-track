@@ -1,7 +1,8 @@
-import numpy as np
 import cv2
+import numpy as np
+
 from .mapper import Mapper
-from .gmc import GMCLoaders
+
 
 class Detection:
 

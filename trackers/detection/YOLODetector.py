@@ -1,6 +1,7 @@
-import torch
 from ultralytics import YOLO
+
 from .base import DetectionModel
+
 
 class YOLODetector(DetectionModel):
     def __init__(self, weights_path:str):

@@ -1,7 +1,7 @@
-import os
-import shutil
-import configparser
 import argparse
+import configparser
+import os
+
 
 def make_parser():
     parser = argparse.ArgumentParser("Copy groundtruth files from VisDrone dataset (in COCO format) to creat groundtruth for TrackEval tool.")

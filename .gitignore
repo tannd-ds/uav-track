@@ -5,6 +5,8 @@ pretrained/
 
 *.pt
 
-.idea/
+.idea
+.vscode
+**.pyc
+**__pycache__
 .ipynb_checkpoints/
-__pycache__/

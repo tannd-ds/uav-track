@@ -67,7 +67,7 @@ def run(model, seq_path, args):
                 else:
                     break
 
-        if save_results:
-            filename = os.path.join(save_results_dir, f'{current_seq}.txt')
-            with open(filename, 'w') as f:
-                f.write(result)
+    if save_results:
+        filename = os.path.join(save_results_dir, f'{current_seq}.txt')
+        with open(filename, 'w') as f:
+            f.write(result)

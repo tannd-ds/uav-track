@@ -36,8 +36,8 @@ def make_parser():
                         action="store_true",
                         help="save result (.txt file)")
     parser.add_argument("--SAVE_RESULTS_DIR",
-                        default="./results/",
-                        help="Where to save the results.txt files. Default to current ./results/")
+                        default="results",
+                        help="Where to save the results.txt files. Default to results/")
     return parser
 
 def create_model(args):
@@ -72,9 +72,9 @@ def handle_args(args):
     args.TRACKER_NAME = os.path.basename(args.WEIGHTS_PATH)[:-3]
 
     # Handle sequences dir
-    skipped_dir_name = ['test', 'train', 'val', '']
+    skipped_dir_name = ['test', 'train', 'val']
     args.RESULTS_DIR_NAME = []
-    seq_dir_split = args.SEQUENCES_DIR.split("/")
+    seq_dir_split = args.SEQUENCES_DIR.rstrip("/").split("/")
     while seq_dir_split[-1] in skipped_dir_name:
         current_split = seq_dir_split[-1]
         seq_dir_split = seq_dir_split[:-1]
@@ -85,8 +85,14 @@ def handle_args(args):
     args.RESULTS_DIR_NAME = '-'.join(args.RESULTS_DIR_NAME[::-1])
 
     if args.SAVE_RESULTS:
-        if args.SAVE_RESULTS_DIR == './results/':
-            os.makedirs(args.SAVE_RESULTS_DIR, exist_ok=True)
+        if args.SAVE_RESULTS_DIR == 'results':
+            if os.path.exists('TrackEval'):
+                args.SAVE_RESULTS_DIR = 'TrackEval/'
+                dirs_list = 'data/trackers/mot_challenge'.split('/')
+                for curr_dir in dirs_list:
+                    args.SAVE_RESULTS_DIR = os.path.join(args.SAVE_RESULTS_DIR, curr_dir)
+                    os.makedirs(args.SAVE_RESULTS_DIR, exist_ok=True)
+
         args.SAVE_RESULTS_DIR = os.path.join(args.SAVE_RESULTS_DIR, args.RESULTS_DIR_NAME)
         os.makedirs(args.SAVE_RESULTS_DIR, exist_ok=True)
         

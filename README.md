@@ -54,6 +54,27 @@ python run_yolov10_on_visdrone.py \
     --SHOW
 ```
 
+# Evaluation
+
+We use [TrackEval](https://github.com/JonathonLuiten/TrackEval) for evaluation. To run the evaluation:
+
+```shell
+cd {REPO_HOME}
+
+python TrackEval/scripts/run_visdrone.py \
+    --BENCHMARK VisDrone2019-MOT_coco \
+    --DO_PREPROC False \
+    --SPLIT_TO_EVAL [train/test] \
+    --TRACKERS_TO_EVAL {TRACKERS_NAME} \
+    --USE_PARALLEL True
+```
+
+### Where to find your results?
+
+- After you run above code (the `run.py`, in previous section), by default, your results will be save
+  to `TrackEval/data/trackers/mot-challenge/VisDrone2019-MOT_coco/{SPLIT}/{TRACKERS_NAME}`. `SPLIT` will be `train`
+  or `test` based on your previous run on VisDrone train or test set respectively.
+
 # Acknowledgement
 
 Some parts of our code are borrowed from the following works:
