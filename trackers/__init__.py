@@ -3,3 +3,4 @@ from . import association
 from . import detection
 from . import utils
 from .AssembleModel import AssembleModel
+from .YOLOModel import YOLOModel

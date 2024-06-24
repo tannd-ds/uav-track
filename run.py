@@ -1,10 +1,11 @@
 import argparse
 import os
+
 import cv2
+
 import trackers
-from trackers.YOLOModel import YOLOModel
-from trackers import AssembleModel
-from trackers import utils
+from trackers import AssembleModel, YOLOModel, utils
+
 
 def make_parser():
     parser = argparse.ArgumentParser("Run YOLO model on VisDrone Dataset")
@@ -58,57 +59,11 @@ def main(args):
     
     n_seqs = len(os.listdir(args.SEQUENCES_DIR))
     for seq_index, current_seq in enumerate(os.listdir(args.SEQUENCES_DIR)):
-        # model = YOLO(args.WEIGHTS_PATH)
         model = create_model(args)
 
         print(f'[INFO] [{seq_index+1}/{n_seqs}] Working on {current_seq}...')
         seq_path = os.path.join(args.SEQUENCES_DIR, current_seq)
-        
-        # Load Groundtruth
-        det, gt = utils.visdrone.parse_gt_files(seq_path)
-        img1_dir = os.path.join(seq_path, 'img1')
-      
-        result = ''
-        for img_file in sorted(os.listdir(img1_dir)):
-            frame_id = int(img_file[:-4])
-            frame = cv2.imread(os.path.join(img1_dir, img_file))
-
-            frame_det = utils.visdrone.get_current_frame(gt, frame_id)
-            ignored_regions = utils.visdrone.get_ignored_regions(frame_det)
-
-            dets = model.track(frame, frame_id=frame_id, persist=True, tracker=f"{args.TRACKER}.yaml", device=0)
-            for det in dets:
-                if det.track_id > 0 and not utils.visdrone.center_in_ignored_regions((det.bb_left + det.bb_width/2, det.bb_top + det.bb_height/2), ignored_regions):
-                    cv2.rectangle(
-                        frame,
-                        (int(det.bb_left), int(det.bb_top)),
-                        (int(det.bb_left + det.bb_width),
-                         int(det.bb_top + det.bb_height)),
-                        (0, 0, 255),
-                        2
-                    )
-                    cv2.putText(
-                        frame,
-                        str(det.track_id),
-                        (int(det.bb_left), int(det.bb_top)),
-                        cv2.FONT_HERSHEY_SIMPLEX,
-                        1,
-                        (0, 0, 255),
-                        2
-                    )
-
-                    result += (f'{frame_id}, {det.track_id}, {det.bb_left:.4f}, {det.bb_top:.4f}, {det.bb_width:.4f}, {det.bb_height:.4f}, {0.8}, -1, -1, -1\n')
-
-            if args.SHOW:
-                cv2.imshow(args.TRACKER_NAME, frame)
-                if cv2.waitKey(1) & 0xFF == ord('q') and not args.SAVE_RESULTS:
-                    break
-
-            if args.SAVE_RESULTS:
-                filename = os.path.join(args.SAVE_RESULTS_DIR, f'{current_seq}.txt')
-                with open(filename, 'w') as f:
-                    f.write(result)
-
+        utils.run(model, seq_path, args)
 
 def handle_args(args):
     """

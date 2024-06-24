@@ -1,7 +1,9 @@
-results/
 datasets/
+results/
+runs/
 pretrained/
 
+*.pt
 
 .idea/
 .ipynb_checkpoints/
