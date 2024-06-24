@@ -58,7 +58,7 @@ def main(args):
         cv2.namedWindow(args.TRACKER_NAME, cv2.WINDOW_KEEPRATIO)
     
     n_seqs = len(os.listdir(args.SEQUENCES_DIR))
-    for seq_index, current_seq in enumerate(os.listdir(args.SEQUENCES_DIR)):
+    for seq_index, current_seq in enumerate(sorted(os.listdir(args.SEQUENCES_DIR))):
         model = create_model(args)
 
         print(f'[INFO] [{seq_index+1}/{n_seqs}] Working on {current_seq}...')

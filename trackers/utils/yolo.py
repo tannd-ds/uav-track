@@ -45,14 +45,17 @@ def yolo_results_to_base_detection(results: list[Results]):
         w = bbox[2] - bbox[0]
         h = bbox[3] - bbox[1]
 
-        det = Detection(int(box.id.item()))
+        track_id = -1
+        if box.id is not None:
+            track_id = int(box.id.item())
+        det = Detection(track_id)
         det.bb_left = bbox[0]
         det.bb_top = bbox[1]
         det.bb_width = w
         det.bb_height = h
         det.conf = conf
         det.det_class = cls_id
-        det.track_id = int(box.id.item())
+        det.track_id = track_id
 
         dets.append(det)
     return dets
