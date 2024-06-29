@@ -22,9 +22,13 @@ class Detection:
     def __repr__(self):
         return self.__str__()
 
+    @property
+    def as_list(self):
+        return [self.id, self.bb_left, self.bb_top, self.bb_width, self.bb_height, ]
+
 class DetectionModel:
     def __init__(self):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    def detect(self, image):
+    def detect(self, image, **kwargs):
         raise NotImplementedError

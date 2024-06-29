@@ -9,5 +9,5 @@ class UCMCAssociator(AssociationModel):
 
     def associate(self, detections, **kwargs):
         frame_id = kwargs.get('frame_id')
-        self.model.update(detections, frame_id=frame_id)
+        self.model.update(detections, )
         return detections

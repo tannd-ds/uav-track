@@ -50,5 +50,5 @@ class UCMCDetector(DetectionModel):
             dets.append(det)
         return dets
 
-    def detect(self, image):
+    def detect(self, image, **kwargs):
         return self.get_dets(image)

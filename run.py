@@ -4,7 +4,7 @@ import os
 import cv2
 
 import trackers
-from trackers import AssembleModel, YOLOModel, utils
+from trackers import AssembleModel, YOLOModel, RTDETRModel, utils
 
 
 def make_parser():
@@ -44,9 +44,37 @@ def create_model(args):
     """Create model based on user choice."""
     if args.MODEL == "yolo":
         return YOLOModel(weights_path=args.WEIGHTS_PATH)
+    elif args.MODEL == "rtdetr":
+        return RTDETRModel(weights_path=args.WEIGHTS_PATH)
     elif args.MODEL == "ucmc":
         return AssembleModel(
             detector=trackers.detection.UCMCDetector('demo/ucmc/cam_para.txt', args.WEIGHTS_PATH),
+            associator=trackers.association.UCMCAssociator()
+        )
+    elif args.MODEL == "smiletrack":
+        args.name = args.TRACKER_NAME
+        args.track_high_thresh = 0.3
+        args.track_low_thresh = 0.1
+        args.new_track_thresh = 0.4
+        args.track_buffer = 20
+        args.match_thresh = 0.7
+        args.aspect_ratio_thresh = 1.6
+        args.min_box_area = 10
+        args.mot20 = False
+        args.with_reid = False
+        args.fast_reid_config = r"fast_reid/configs/MOT17/sbs_S50.yml",
+        args.fast_reid_weights = r"pretrained/mot17_sbs_S50.pth",
+        args.proximity_thresh = 0.5
+        args.appearance_thresh = 0.25
+        args.cmc_method = "sparseOptFlow"
+        args.ablation = False
+        return AssembleModel(
+            detector=trackers.detection.UCMCDetector('demo/ucmc/cam_para.txt', args.WEIGHTS_PATH),
+            associator=trackers.association.SMILETrackAssociator(args)
+        )
+    elif args.MODEL == "gt/ucmc":
+        return AssembleModel(
+            detector=trackers.detection.GTDetector(args.SEQUENCES_DIR),
             associator=trackers.association.UCMCAssociator()
         )
     else:

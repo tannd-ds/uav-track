@@ -1,7 +1,7 @@
 import os
 
 from trackers.utils.visdrone import get_current_frame, parse_gt_files
-from .base import DetectionModel
+from .base import DetectionModel, Detection
 
 
 class GTDetector(DetectionModel):
@@ -30,4 +30,17 @@ class GTDetector(DetectionModel):
 
         if self.current_anno_file["filename"] == "" or self.current_anno_file["data"] == []:
             self.update_anno_file(sequence_name)
-        return get_current_frame(self.current_anno_file["data"], frame_id)
+        dets_raw = get_current_frame(self.current_anno_file["data"], frame_id)
+        dets = []
+        for line in dets_raw:
+            det = Detection(int(line[1]))
+            det.bb_left = int(line[2])
+            det.bb_top = int(line[3])
+            det.bb_width = int(line[4])
+            det.bb_height = int(line[5])
+            det.conf = float(line[6])
+            det.det_class = 0
+            det.track_id = line[1]
+
+            dets.append(det)
+        return dets

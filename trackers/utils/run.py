@@ -1,4 +1,6 @@
 import os
+import re
+import time
 from argparse import Namespace
 
 import cv2
@@ -26,15 +28,27 @@ def run(model, seq_path, args):
     det, gt = visdrone.parse_gt_files(seq_path)
     img1_dir = os.path.join(seq_path, 'img1')
 
+    run_time = 0
+    n_image = len(os.listdir(img1_dir))
+
     result = ''
     for img_file in sorted(os.listdir(img1_dir)):
-        frame_id = int(img_file[:-4])
+        frame_id = int(''.join(re.findall(pattern='\d+', string=img_file[:-4])))
         frame = cv2.imread(os.path.join(img1_dir, img_file))
 
         frame_det = visdrone.get_current_frame(gt, frame_id)
         ignored_regions = visdrone.get_ignored_regions(frame_det)
 
-        dets = model.track(frame, frame_id=frame_id, persist=True, tracker=tracker, verbose=False, device=0)
+        start = time.time()
+        dets = model.track(frame,
+                           frame_id=frame_id,
+                           sequence_name=current_seq,  # For GTDetector
+                           persist=True,
+                           tracker=tracker,
+                           img=frame,
+                           verbose=False,
+                           device=0)
+        run_time += time.time() - start
         for det in dets:
             if det.track_id > 0 and not visdrone.center_in_ignored_regions(
                     (det.bb_left + det.bb_width / 2, det.bb_top + det.bb_height / 2),
@@ -66,6 +80,8 @@ def run(model, seq_path, args):
                     print('[INFO] Can\'t skip the Video when --SAVE_RESULTS==True...')
                 else:
                     break
+
+    print(f"[INFO] Avg run time: {run_time / n_image:.2f}")
 
     if save_results:
         filename = os.path.join(save_results_dir, f'{current_seq}.txt')

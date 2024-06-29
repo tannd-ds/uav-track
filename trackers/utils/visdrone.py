@@ -50,7 +50,8 @@ def parse_gt_files(path):
 
     return det_parsed, gt_parsed
 
-def get_current_frame(anno_data, frame_id):
+
+def get_current_frame(anno_data: list, frame_id: int):
     """
     Filters an annotation data list to return only lines corresponding to a specific frame.
 
