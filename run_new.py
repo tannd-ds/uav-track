@@ -4,8 +4,8 @@ import os
 import cv2
 
 from GeneTrack import run
-from GeneTrack.detectors import YOLODetector
-from GeneTrack.trackers import BYTETrack
+from GeneTrack.detectors import YOLODetector, FasterRCNNDetector
+from GeneTrack.trackers import BYTETrack, BOTSORT, SORT
 
 
 def make_parser():
@@ -17,8 +17,7 @@ def make_parser():
                         help="Path to VisDrone dataset. It should point to train, or test directory of the dataset.")
     parser.add_argument("--DETECTOR",
                         type=str,
-                        required=True,
-                        help="The model used for prediction.")
+                        choices=["yolo", "fasterrcnn"], help="The model used for prediction.")
     parser.add_argument("--WEIGHTS_PATH",
                         type=str,
                         required=True,
@@ -26,7 +25,7 @@ def make_parser():
     parser.add_argument("--TRACKER",
                         type=str,
                         default="bytetrack",
-                        choices=["bytetrack", "botsort"],
+                        choices=["sort", "bytetrack", "botsort"],
                         help="YOLO Trackers")
     parser.add_argument("--SHOW",
                         default=False,
@@ -47,26 +46,36 @@ def create_model(args):
     detector = None
     if args.DETECTOR == "yolo":
         detector = YOLODetector(weight_path=args.WEIGHTS_PATH)
+    if args.DETECTOR == "fasterrcnn":
+        detector = FasterRCNNDetector(weights_path='pretrained/3epoch_fasterrcnn.pth')
     else:
         raise ValueError("Invalid detector type")
 
     tracker = None
+    args.name = args.TRACKER
     if args.TRACKER == "bytetrack":
-        args.name = 'Hello'
         args.track_high_thresh = 0.5
         args.track_low_thresh = 0.1
         args.new_track_thresh = 0.6
         args.track_buffer = 30
         args.match_thresh = 0.8
-        args.aspect_ratio_thresh = 1.6
-        args.min_box_area = 10
-        args.mot20 = False
-        args.with_reid = False
+        tracker = BYTETrack(args)
+    elif args.TRACKER == "botsort":
+        args.track_high_thresh = 0.5
+        args.track_low_thresh = 0.1
+        args.new_track_thresh = 0.6
+        args.track_buffer = 30
+        args.match_thresh = 0.8
+
+        args.gmc_method = "sparseOptFlow"
         args.proximity_thresh = 0.5
         args.appearance_thresh = 0.25
-        args.cmc_method = "sparseOptFlow"
-        args.ablation = False
-        tracker = BYTETrack(args)
+        args.with_reid = False
+
+        tracker = BOTSORT(args)
+    elif args.TRACKER == "sort":
+        args.match_thresh = 0.8
+        tracker = SORT(args)
     else:
         raise ValueError("Invalid tracker type")
 

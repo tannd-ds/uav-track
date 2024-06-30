@@ -41,7 +41,7 @@ def run(detector, tracker, seq_path, args):
         dets = detector(frame)
         gt_det = gt_detector.detect(frame)
 
-        tracklets = tracker.update(gt_det)
+        tracklets = tracker.update(dets)
         run_time += time.time() - start
         for tracklet in tracklets:
             xyxy = tracklet[0], tracklet[1], tracklet[2], tracklet[3]

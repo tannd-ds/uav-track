@@ -2,7 +2,9 @@ import numpy as np
 
 
 class Detection(object):
-    """Basic and General output format for GeneTrack detectors."""
+    """Basic and General output format for GeneTrack detectors.
+    IMPORTANT: x and y in xywh is the coordinates of the center of the detector.
+    """
 
     def __init__(self, conf: np.ndarray, xywh: np.ndarray, cls: np.ndarray):
         self.conf = conf

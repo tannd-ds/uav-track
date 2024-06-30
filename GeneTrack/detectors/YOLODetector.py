@@ -13,5 +13,3 @@ class YOLODetector(DetectorBase):
         dets = Detection(yolo_dets.boxes.conf, yolo_dets.boxes.xywh, yolo_dets.boxes.cls)
         return dets
 
-    def __call__(self, img):
-        return self.detect(img)

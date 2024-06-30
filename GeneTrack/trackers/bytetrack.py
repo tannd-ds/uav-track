@@ -175,12 +175,9 @@ class BYTETrack(object):
         """Initialize object tracking with detections and scores using STrack algorithm."""
         return [STrack(xyxy, s, c) for (xyxy, s, c) in zip(dets, scores, cls)] if len(dets) else []  # detections
 
-    @staticmethod
-    def get_dists(tracks, detections):
+    def get_dists(self, tracks, detections):
         """Calculates the distance between tracks and detections using IoU and fuses scores."""
         dists = matching.iou_distance(tracks, detections)
-        # TODO: mot20
-        # if not self.args.mot20:
         dists = matching.fuse_score(dists, detections)
         return dists
 
