@@ -160,4 +160,5 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print('[INFO] Stopped by User...')
 
-    cv2.destroyAllWindows()
+    if args.SHOW:
+        cv2.destroyAllWindows()
