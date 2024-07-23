@@ -2,10 +2,16 @@ import argparse
 import os
 
 import cv2
+import yaml
 
-import trackers
-from trackers import AssembleModel, YOLOModel, RTDETRModel, utils
+from GeneTrack import run
+from GeneTrack.detectors import YOLODetector, FasterRCNNDetector
+from GeneTrack.trackers import BYTETrack, BOTSORT, SORT
 
+
+class SupportedMethods(object):
+    detectors = ["yolo", "fasterrcnn", "pro"]
+    trackers = ["sort", "bytetrack", "botsort"]
 
 def make_parser():
     parser = argparse.ArgumentParser("Run YOLO model on VisDrone Dataset")
@@ -14,9 +20,9 @@ def make_parser():
                         type=str,
                         default=".",
                         help="Path to VisDrone dataset. It should point to train, or test directory of the dataset.")
-    parser.add_argument("--MODEL",
+    parser.add_argument("--DETECTOR",
                         type=str,
-                        required=True,
+                        choices=SupportedMethods.detectors,
                         help="The model used for prediction.")
     parser.add_argument("--WEIGHTS_PATH",
                         type=str,
@@ -25,7 +31,7 @@ def make_parser():
     parser.add_argument("--TRACKER",
                         type=str,
                         default="bytetrack",
-                        choices=["bytetrack", "botsort"],
+                        choices=SupportedMethods.trackers,
                         help="YOLO Trackers")
     parser.add_argument("--SHOW",
                         default=False,
@@ -40,64 +46,68 @@ def make_parser():
                         help="Where to save the results.txt files. Default to results/")
     return parser
 
+
+def parse_tracker_config(args):
+    cfg_path = os.path.join('GeneTrack/trackers/configs/', f'{args.TRACKER}.yaml')
+    with open(cfg_path, 'r') as f:
+        tracker_config = yaml.safe_load(f)
+
+    # Add config values to args
+    for key, value in tracker_config.items():
+        if hasattr(args, key):
+            continue
+        else:
+            setattr(args, key, value)
+
+    return tracker_config
+
 def create_model(args):
     """Create model based on user choice."""
-    if args.MODEL == "yolo":
-        return YOLOModel(weights_path=args.WEIGHTS_PATH)
-    elif args.MODEL == "rtdetr":
-        return RTDETRModel(weights_path=args.WEIGHTS_PATH)
-    elif args.MODEL == "ucmc":
-        return AssembleModel(
-            detector=trackers.detection.UCMCDetector('demo/ucmc/cam_para.txt', args.WEIGHTS_PATH),
-            associator=trackers.association.UCMCAssociator()
-        )
-    elif args.MODEL == "smiletrack":
-        args.name = args.TRACKER_NAME
-        args.track_high_thresh = 0.3
-        args.track_low_thresh = 0.1
-        args.new_track_thresh = 0.4
-        args.track_buffer = 20
-        args.match_thresh = 0.7
-        args.aspect_ratio_thresh = 1.6
-        args.min_box_area = 10
-        args.mot20 = False
-        args.with_reid = False
-        args.fast_reid_config = r"fast_reid/configs/MOT17/sbs_S50.yml",
-        args.fast_reid_weights = r"pretrained/mot17_sbs_S50.pth",
-        args.proximity_thresh = 0.5
-        args.appearance_thresh = 0.25
-        args.cmc_method = "sparseOptFlow"
-        args.ablation = False
-        return AssembleModel(
-            detector=trackers.detection.UCMCDetector('demo/ucmc/cam_para.txt', args.WEIGHTS_PATH),
-            associator=trackers.association.SMILETrackAssociator(args)
-        )
-    elif args.MODEL == "gt/ucmc":
-        return AssembleModel(
-            detector=trackers.detection.GTDetector(args.SEQUENCES_DIR),
-            associator=trackers.association.UCMCAssociator()
-        )
+    detector = None
+    if args.DETECTOR == "yolo":
+        detector = YOLODetector(weight_path=args.WEIGHTS_PATH)
+    elif args.DETECTOR == "fasterrcnn":
+        detector = FasterRCNNDetector(weights_path=args.WEIGHTS_PATH)
     else:
-        raise ValueError("Unsupported model type, got {}".format(args.MODEL))
+        raise ValueError(f"Invalid detector type, expected {SupportedMethods.detectors} but got '{args.DETECTOR}'")
+
+    tracker = None
+    if args.TRACKER == "bytetrack":
+        tracker = BYTETrack(args)
+    elif args.TRACKER == "botsort":
+        tracker = BOTSORT(args)
+    elif args.TRACKER == "sort":
+        tracker = SORT(args)
+    else:
+        raise ValueError(f"Invalid tracker type, expected {SupportedMethods.trackers} but got '{args.TRACKER}'")
+
+    return detector, tracker
+
 
 def main(args):
     # Create window for display the result
     if args.SHOW:
         cv2.namedWindow(args.TRACKER_NAME, cv2.WINDOW_KEEPRATIO)
-    
-    n_seqs = len(os.listdir(args.SEQUENCES_DIR))
-    for seq_index, current_seq in enumerate(sorted(os.listdir(args.SEQUENCES_DIR))):
-        model = create_model(args)
 
-        print(f'[INFO] [{seq_index+1}/{n_seqs}] Working on {current_seq}...')
+    n_seqs = len(os.listdir(args.SEQUENCES_DIR))
+    """
+    IMPORTANT: For simplicity and fast inference, for UAVDT dataset, we only infer in 10 first sequences of the dataset.
+    """
+    for seq_index, current_seq in enumerate(sorted(os.listdir(args.SEQUENCES_DIR))):
+        print(f'[INFO] [{seq_index + 1}/{n_seqs}] Working on {current_seq}...')
+        detector, tracker = create_model(args)
+
         seq_path = os.path.join(args.SEQUENCES_DIR, current_seq)
-        utils.run(model, seq_path, args)
+        run.run(detector, tracker, seq_path, args)
+
 
 def handle_args(args):
     """
     This function handle and process arguments so the program can run smoothly after.
     """
-    args.TRACKER_NAME = os.path.basename(args.WEIGHTS_PATH)[:-3]
+    parse_tracker_config(args)
+
+    args.TRACKER_NAME = f'{args.DETECTOR}_{args.TRACKER}_{os.path.basename(args.WEIGHTS_PATH)[:-3]}'
 
     # Handle sequences dir
     skipped_dir_name = ['test', 'train', 'val']
@@ -123,25 +133,31 @@ def handle_args(args):
 
         args.SAVE_RESULTS_DIR = os.path.join(args.SAVE_RESULTS_DIR, args.RESULTS_DIR_NAME)
         os.makedirs(args.SAVE_RESULTS_DIR, exist_ok=True)
-        
+
         tracker_index = 0
         while os.path.exists(os.path.join(args.SAVE_RESULTS_DIR, f'{args.TRACKER_NAME}_{tracker_index:05d}')):
             tracker_index += 1
         args.SAVE_RESULTS_DIR = os.path.join(args.SAVE_RESULTS_DIR, f'{args.TRACKER_NAME}_{tracker_index:05d}')
         os.mkdir(args.SAVE_RESULTS_DIR)
         args.SAVE_RESULTS_DIR = os.path.join(args.SAVE_RESULTS_DIR, 'data')
-        os.mkdir(args.SAVE_RESULTS_DIR)        
+        os.mkdir(args.SAVE_RESULTS_DIR)
         print(f'[INFO] Results file will be saved to {args.SAVE_RESULTS_DIR}')
 
+    # Save args to yaml
+    if args.SAVE_RESULTS:
+        with open(os.path.join(args.SAVE_RESULTS_DIR, 'args.yaml'), 'w') as f:
+            yaml.dump(vars(args), f)
+
     return args
+
 
 if __name__ == "__main__":
     try:
         args = make_parser().parse_args()
         args = handle_args(args)
-    
+
         main(args)
     except KeyboardInterrupt:
         print('[INFO] Stopped by User...')
-        
+
     cv2.destroyAllWindows()

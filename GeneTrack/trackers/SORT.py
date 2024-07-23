@@ -32,7 +32,6 @@ class SORT(object):
         dists = matching.iou_distance(self.tracked_stracks, detections)
         matches, unmatched_tracks, unmatched_detections = matching.linear_assignment(dists,
                                                                                      thresh=self.args.match_thresh)
-
         # Update matched tracks
         for track_idx, detection_idx in matches:
             self.tracked_stracks[track_idx].update(detections[detection_idx], self.frame_id)

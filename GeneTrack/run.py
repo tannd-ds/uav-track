@@ -11,19 +11,13 @@ from .detectors import GTDetector
 
 
 def run(detector, tracker, seq_path, args):
-    chosen_class = [3, 4, 5, 6, 7, 8, 9, 10]
-    if isinstance(args, dict):
-        current_seq: str = seq_path.split('/')[-1]
-        tracker_name: str = args.get('TRACKER_name', 'botsort')
-        show_video: bool = args.get('SHOW', False)
-        save_results: bool = args.get('SAVE_RESULTS', False)
-        save_results_dir: str = args.get('SAVE_RESULTS_DIR', os.getcwd())
-    elif isinstance(args, Namespace):
-        current_seq: str = seq_path.split('/')[-1]
-        tracker_name: str = args.TRACKER_NAME
-        show_video: bool = args.SHOW
-        save_results: bool = args.SAVE_RESULTS
-        save_results_dir: str = args.SAVE_RESULTS_DIR
+    if isinstance(args, Namespace):
+        args = vars(args)
+    current_seq: str = seq_path.split('/')[-1]
+    tracker_name: str = args.get('TRACKER_NAME', 'botsort')
+    show_video: bool = args.get('SHOW', False)
+    save_results: bool = args.get('SAVE_RESULTS', False)
+    save_results_dir: str = args.get('SAVE_RESULTS_DIR', os.getcwd())
 
     # Load Groundtruth
     gt_detector = GTDetector(groundtruth_path=seq_path)
@@ -36,10 +30,12 @@ def run(detector, tracker, seq_path, args):
     for img_file in sorted(os.listdir(img1_dir)):
         frame_id = int(''.join(re.findall(pattern='\d+', string=img_file[:-4])))
         frame = cv2.imread(os.path.join(img1_dir, img_file))
+        frame = cv2.resize(frame, dsize=(640, 640), interpolation=cv2.INTER_CUBIC)
+
+        gt_det = gt_detector.detect(frame)
 
         start = time.time()
         dets = detector(frame)
-        gt_det = gt_detector.detect(frame)
 
         tracklets = tracker.update(dets)
         run_time += time.time() - start
@@ -47,17 +43,19 @@ def run(detector, tracker, seq_path, args):
             xyxy = tracklet[0], tracklet[1], tracklet[2], tracklet[3]
             track_id = str(int(tracklet[4]))
 
-            if not visdrone.center_in_ignored_regions(
+            if visdrone.center_in_ignored_regions(
                     ((tracklet[0] + tracklet[2]) / 2,
                      (tracklet[1] + tracklet[3]) / 2),
                     gt_detector.current_ignored_regions):
-                utils.plot_one_box(xyxy,
-                                   frame,
-                                   color=utils.colors[int(tracklet[6]) % len(utils.colors)],
-                                   label=track_id,
-                                   line_thickness=2)
+                continue
 
-                result += f'{frame_id}, {track_id}, {tracklet[0]:.4f}, {tracklet[1]:.4f}, {(tracklet[2] - tracklet[0]):.4f}, {(tracklet[3] - tracklet[1]):.4f}, {1}, -1, -1, -1\n'
+            utils.plot_one_box(xyxy,
+                               frame,
+                               color=utils.colors[int(tracklet[6]) % len(utils.colors)],
+                               label=track_id,
+                               line_thickness=2)
+
+            result += f'{frame_id}, {track_id}, {tracklet[0]:.4f}, {tracklet[1]:.4f}, {(tracklet[2] - tracklet[0]):.4f}, {(tracklet[3] - tracklet[1]):.4f}, {1}, -1, -1, -1\n'
 
         if show_video:
             cv2.imshow(tracker_name, frame)
