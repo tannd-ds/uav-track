@@ -218,3 +218,8 @@ class STrack(BaseTrack):
     def __repr__(self):
         """Return a string representation of the BYTETracker object with start and end frames and track ID."""
         return f"OT_{self.track_id}_({self.start_frame}-{self.end_frame})"
+
+    @staticmethod
+    def reset_id():
+        """Reset the track ID counter to 0."""
+        BaseTrack.clear_count()

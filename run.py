@@ -81,6 +81,9 @@ def create_model(args):
     else:
         raise ValueError(f"Invalid tracker type, expected {SupportedMethods.trackers} but got '{args.TRACKER}'")
 
+    # reset tracker id so that the id will start from 0 for each sequence
+    tracker.reset()
+
     return detector, tracker
 
 

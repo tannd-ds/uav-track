@@ -64,3 +64,10 @@ class SORT(object):
     def get_kalmanfilter():
         """Returns a Kalman filter object for tracking bounding boxes."""
         return KalmanFilterXYAH()
+
+    def reset(self):
+        """Reset tracker."""
+        self.tracked_stracks = []
+        self.frame_id = 0
+        self.kalman_filter = self.get_kalmanfilter()
+        STrack.reset_id()
